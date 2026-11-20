@@ -51,3 +51,32 @@ def test_network_ui_sends_heartbeat_when_ready():
         send.assert_called_once()
         assert any('Heartbeat accepted' in success.value for success in at.success)
         assert len(at.session_state['mesh_history']) == 1
+
+
+def test_setup_explicit_action_opt_in_preserves_secrets(tmp_path, monkeypatch):
+    for key in SECRET_KEYS:
+        monkeypatch.delenv(key, raising=False)
+    env = tmp_path / '.env'
+    configure_simulator(env)
+    before = dotenv_values(env)
+    configure_simulator(env, enable_actions=True)
+    after = dotenv_values(env)
+    assert after['SOC_ENABLE_SIMULATION_ACTIONS'] == 'true'
+    assert all(after[key] == before[key] for key in SECRET_KEYS)
+    snapshot = env.read_bytes()
+    configure_simulator(env, enable_actions=True)
+    assert env.read_bytes() == snapshot
+
+
+def test_cloud_scenarios_disabled_without_nodes():
+    with patch('ui.client.fetch_all_metrics',return_value={}), patch('ui.simulator.simulator_config_status',return_value={'configured':False}), patch('ui.simulator.simulation_actions_enabled',return_value=False):
+        at = AppTest.from_file(str(ROOT / 'ui/pages/scenarios.py'), default_timeout=30).run()
+        assert not at.exception
+        assert all(button.disabled for button in at.button if button.label.startswith('Run '))
+
+
+def test_cloud_monitor_disabled_without_nodes():
+    with patch('ui.client.fetch_all_metrics',return_value={}), patch('ui.simulator.simulator_config_status',return_value={'configured':False}), patch('ui.simulator.simulation_actions_enabled',return_value=False):
+        at = AppTest.from_file(str(ROOT / 'ui/pages/remediation.py'),default_timeout=30).run()
+        assert not at.exception
+        assert next(b for b in at.button if b.label=='Run monitor agent').disabled

@@ -21,7 +21,7 @@ from langchain_core.messages import HumanMessage, SystemMessage
 from langgraph.graph import END, StateGraph
 
 from network import NODE_PORTS, NODE_URLS
-from network.secrets_store import mesh_credentials
+from network.secrets_store import mesh_credentials, simulation_actions_enabled
 from src.agent import get_llm
 from src.config import RETRIEVER_K
 from src.vector_store import similarity_search
@@ -40,6 +40,7 @@ class MonitorState(TypedDict, total=False):
     retrieved_docs: list[dict[str, Any]]
     remediation_plan: dict[str, Any]
     execution_results: list[dict[str, Any]]
+    execution_status: str
     summary: str
     agent_trace: list[dict[str, Any]]
     error: str
@@ -447,9 +448,6 @@ def _fallback_plan(detection: dict[str, Any], ctx: dict[str, Any]) -> dict[str, 
 
 def node_execute_remediation(state: MonitorState) -> MonitorState:
     """Call node /admin/remediate for each planned action."""
-    if os.getenv("SOC_ENABLE_SIMULATION_ACTIONS", "false").lower() != "true":
-        return {**state, "error": "Simulation actions disabled. Set SOC_ENABLE_SIMULATION_ACTIONS=true only for the local demo mesh."}
-
     if state.get("error"):
         return state
     plan = state.get("remediation_plan") or {}
@@ -462,8 +460,15 @@ def node_execute_remediation(state: MonitorState) -> MonitorState:
         return {
             **state,
             "execution_results": [],
+            "execution_status": "not_needed",
             "agent_trace": _trace(state, "execute_remediation", "nothing to execute"),
         }
+
+    if not simulation_actions_enabled():
+        return {**state, "execution_results": [], "execution_status": "preview",
+                "agent_trace": _trace(state, "execute_remediation", "Preview only: no actions executed. Enable actions explicitly for the localhost demo mesh.")}
+    if port not in NODE_PORTS:
+        return {**state, "error": "Execution target must be one of the configured local demo nodes.", "execution_results": []}
 
     try:
         with httpx.Client(timeout=15.0) as client:
@@ -528,7 +533,11 @@ def node_summarize(state: MonitorState) -> MonitorState:
     results = state.get("execution_results") or []
     ok = sum(1 for r in results if r.get("http_status") == 200 and (r.get("response") or {}).get("status") == "ok")
 
-    if not detection.get("incident_detected"):
+    if state.get("error"):
+        summary = "Monitor cycle could not complete: " + state["error"]
+    elif state.get("execution_status") == "preview":
+        summary = f"Preview only: {len(plan.get('actions') or [])} actions proposed for {detection.get('scenario', 'the incident')}. No containment actions were executed."
+    elif not detection.get("incident_detected"):
         summary = "LangGraph monitor: no active incident requiring remediation."
     else:
         summary = (

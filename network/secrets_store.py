@@ -64,3 +64,9 @@ def simulator_config_status() -> dict[str, object]:
     required = ('MESH_SERVICE_PASSWORD', *(secret_env_key(port) for port in (8001, 8002, 8003)))
     missing = [key for key in required if not os.getenv(key)]
     return {'configured': not missing, 'missing': missing}
+
+
+def simulation_actions_enabled() -> bool:
+    """Explicit local demo opt-in; environment values retain precedence."""
+    load_dotenv(ENV_PATH, override=False)
+    return os.getenv('SOC_ENABLE_SIMULATION_ACTIONS', 'false').strip().lower() == 'true'

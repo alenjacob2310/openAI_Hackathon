@@ -87,7 +87,7 @@ python scripts/setup_simulator.py
 python -m network.run_nodes
 ```
 
-Nodes bind to `127.0.0.1`. Administrative actions require a service/admin JWT. Demo user/password shortcuts are disabled by default. Set `SOC_ENABLE_SIMULATION_ACTIONS=true` only when deliberately demonstrating the local simulation's autonomous actions. Keep `SOC_ENABLE_DEMO_LOGIN=false` unless you need the synthetic login shortcut. Do not expose this simulator to a network or use it for production incident response.
+Nodes bind to `127.0.0.1`. Administrative actions require a service/admin JWT. Demo user/password shortcuts are disabled by default. Set `SOC_ENABLE_SIMULATION_ACTIONS=true` only when deliberately demonstrating the local simulation's autonomous actions. Run `python scripts/setup_simulator.py --enable-actions` to opt in locally, then restart Streamlit. Without that opt-in, the monitor returns a preview without executing actions. Keep `SOC_ENABLE_DEMO_LOGIN=false` unless you need the synthetic login shortcut. Do not expose this simulator to a network or use it for production incident response.
 
 `OPENAI_MODEL` controls only the optional monitor's LLM planning. Core checklist/ticket text is generated deterministically; `EMBEDDING_MODEL` controls the core vector index.
 
@@ -103,3 +103,8 @@ Deploy the GitHub repository `alenjacob2310/openAI_Hackathon`, branch `main`, en
 The network simulator is a separate local service. Deploying the Streamlit UI does not start ports 8001–8003, and a cloud app's localhost is not your computer. Heartbeat is disabled until credentials and all three nodes are available in the same environment. The cloud incident workspace can still parse alerts, show bundled cited SOPs, and generate tickets in Local demo mode.
 
 Official deployment instructions: https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy
+
+
+### Simulation action opt-in
+
+If you saw “Simulation actions disabled,” run `python scripts/setup_simulator.py --enable-actions` on the local machine and restart the local Streamlit process. Existing credentials are preserved. The monitor can also produce a preview without executing any proposed actions. Scenario buttons require the local nodes, credentials, and execution opt-in; cloud controls remain unavailable when those services are absent. An idle monitor with nothing to execute is not an execution-permission error.

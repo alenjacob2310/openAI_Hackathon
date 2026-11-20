@@ -8,6 +8,7 @@ from ui.client import fetch_all_metrics, run_all_scenarios_api, run_scenario_api
 from ui.log_reader import latest_scenario_report
 from ui.styles import banner, inject_styles
 from ui.viz import mesh_svg
+from ui.simulator import simulator_controls
 
 SCENARIO_COPY = {
     "ddos": {
@@ -73,6 +74,7 @@ def page() -> None:
     )
 
     metrics = fetch_all_metrics()
+    can_execute = simulator_controls(metrics, require_execution=True)
     online = sum(1 for m in metrics.values() if m.get("online"))
     if online < 3:
         st.warning(
@@ -90,7 +92,7 @@ def page() -> None:
             st.caption(info["blurb"])
             st.markdown(f"**Detect:** {info['detect']}")
             st.markdown(f"**Remediate:** {info['remediate']}")
-            if st.button(f"Run {info['title']}", key=f"run_{key}", use_container_width=True):
+            if st.button(f"Run {info['title']}", key=f"run_{key}", width="stretch", disabled=not can_execute):
                 with st.spinner(f"Inject {key} → LangGraph remediate…"):
                     try:
                         result = run_scenario_api(key)
@@ -113,7 +115,7 @@ def page() -> None:
                         st.error(str(exc))
 
     st.divider()
-    if st.button("Run all 4 scenarios (random order)", type="primary"):
+    if st.button("Run all 4 scenarios (random order)", type="primary", disabled=not can_execute):
         with st.spinner("Full suite: inject → LangGraph remediate…"):
             try:
                 results = run_all_scenarios_api()

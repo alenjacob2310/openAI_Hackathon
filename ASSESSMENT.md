@@ -79,3 +79,8 @@ Added an idempotent local simulator setup command that creates missing random se
 ### Cloud deployment verified
 
 The existing Streamlit Community Cloud deployment at https://openaihackathon-soc-copilot.streamlit.app/ was verified after the simulator fix reached `main`. In the live cloud UI, the phishing sample generated 13 cited review steps and a downloadable incident ticket that kept root cause unconfirmed and did not claim completed containment. The cloud network page displayed setup guidance and a disabled heartbeat button because its local node services were absent. On the local machine, all three nodes were online and a UI-triggered authenticated heartbeat was accepted with HTTP 200. No cloud OpenAI embedding call or real containment action was performed.
+
+
+### Simulation action opt-in repair
+
+The simulator setup command now supports `--enable-actions`, preserving existing credentials while explicitly enabling actions in the ignored local `.env`. Disabled execution produces a preview with no administrative API calls, rather than an error. Idle cycles do not raise an opt-in error. Scenario controls require configured healthy nodes and execution opt-in; monitor controls require the node services. Invalid execution target ports are rejected. Verified an authenticated local demo action returned HTTP 200 while preserving the node's current rate limit.

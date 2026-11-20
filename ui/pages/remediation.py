@@ -9,6 +9,7 @@ from ui.client import fetch_all_metrics, lift_isolation, run_monitor_agent_api
 from ui.log_reader import read_remediations
 from ui.styles import banner, inject_styles
 from ui.viz import mesh_svg, node_card_html
+from ui.simulator import simulator_controls
 
 
 def page() -> None:
@@ -19,6 +20,7 @@ def page() -> None:
     )
 
     metrics = fetch_all_metrics()
+    can_monitor = simulator_controls(metrics, require_execution=False)
     st.markdown(mesh_svg(metrics), unsafe_allow_html=True)
 
     cols = st.columns(3)
@@ -27,7 +29,7 @@ def page() -> None:
             m = metrics.get(port) or {}
             st.markdown(node_card_html(port, m), unsafe_allow_html=True)
             if m.get("isolated"):
-                if st.button(f"Lift isolation :{port}", key=f"lift_{port}"):
+                if st.button(f"Lift isolation :{port}", key=f"lift_{port}", disabled=not can_monitor):
                     try:
                         lift_isolation(port)
                         st.success(f"Isolation lifted on {port}")
@@ -47,7 +49,7 @@ def page() -> None:
     with c3:
         st.write("")
         st.write("")
-        run = st.button("Run monitor agent", type="primary", use_container_width=True)
+        run = st.button("Run monitor agent", type="primary", width="stretch", disabled=not can_monitor)
 
     if run:
         with st.spinner("collect → detect → retrieve SOP → plan → execute…"):
@@ -74,7 +76,12 @@ def page() -> None:
                         }
                     )
                 st.session_state.activity_feed = feed[-100:]
-                st.success("Monitor cycle complete")
+                if result.get("error"):
+                    st.error(result["error"])
+                elif result.get("execution_status") == "preview":
+                    st.info("Preview complete. No containment actions were executed.")
+                else:
+                    st.success("Monitor cycle complete")
             except Exception as exc:  # noqa: BLE001
                 st.error(str(exc))
 

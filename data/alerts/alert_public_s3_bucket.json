@@ -1,0 +1,21 @@
+{
+  "alert_id": "ALT-S3-001",
+  "timestamp": "2026-03-12T14:25:00Z",
+  "source": "Mock CSPM",
+  "severity": "High",
+  "rule_name": "Public S3 Bucket Exposure",
+  "raw_event": {
+    "bucket": "demo-private-records",
+    "account_id": "123456789012",
+    "region": "us-east-1",
+    "public_access_block": false,
+    "policy_principal": "AllUsers",
+    "event_name": "PutBucketPolicy",
+    "event_time": "2026-03-12T14:20:00Z",
+    "source_ip": "198.51.100.25"
+  },
+  "mitre_hint": [
+    "T1530"
+  ],
+  "analyst_notes": "Synthetic sample; validate data sensitivity and exposure before acting."
+}

@@ -1,0 +1,52 @@
+{
+  "alert_id": "ALT-2026-0312-0098",
+  "timestamp": "2026-03-12T09:05:33Z",
+  "source": "EDR Ransomware Behavior Pack",
+  "severity": "Critical",
+  "rule_name": "Mass File Encryption + Shadow Copy Deletion",
+  "status": "new",
+  "raw_event": {
+    "host": {
+      "hostname": "FIN-WS-042",
+      "ip": "10.40.12.42",
+      "os": "Windows 11 Enterprise",
+      "user": "ACME\\finance.ops",
+      "domain_joined": true
+    },
+    "behaviors": [
+      {
+        "type": "shadow_copy_delete",
+        "process": "vssadmin.exe",
+        "cmdline": "vssadmin.exe Delete Shadows /All /Quiet",
+        "time": "2026-03-12T09:03:11Z"
+      },
+      {
+        "type": "mass_encrypt",
+        "process": "update_service.exe",
+        "path": "C:\\Users\\finance.ops\\AppData\\Roaming\\update_service.exe",
+        "files_modified": 18420,
+        "extension": ".locked_acme",
+        "time": "2026-03-12T09:04:02Z"
+      }
+    ],
+    "ransom_note": {
+      "filename": "README_LOCKED.txt",
+      "sha256": "a3f5c8e91b2d4e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7",
+      "family_hint": "LockBit-like"
+    },
+    "network": {
+      "c2_domain": "pay-now-onion-helper.example",
+      "c2_ip": "45.77.210.88",
+      "outbound_port": 443
+    },
+    "related_cve_mentions": ["CVE-2023-34362"]
+  },
+  "iocs_hint": {
+    "domains": ["pay-now-onion-helper.example"],
+    "ips": ["45.77.210.88", "10.40.12.42"],
+    "hashes": ["a3f5c8e91b2d4e6f708192a3b4c5d6e7f8091a2b3c4d5e6f708192a3b4c5d6e7"],
+    "filenames": ["update_service.exe", "README_LOCKED.txt"]
+  },
+  "mitre_hint": ["T1486", "T1490", "T1059"],
+  "analyst_notes": "Finance workstation encrypting files. Possible initial access via exposed file-transfer service."
+}

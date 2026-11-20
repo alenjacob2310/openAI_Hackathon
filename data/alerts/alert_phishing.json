@@ -1,0 +1,47 @@
+{
+  "alert_id": "ALT-2026-0312-0041",
+  "timestamp": "2026-03-12T14:22:07Z",
+  "source": "Email Gateway + EDR Correlation",
+  "severity": "High",
+  "rule_name": "Phishing Credential Harvest with Successful Click",
+  "status": "new",
+  "raw_event": {
+    "email": {
+      "message_id": "<phish.88219@mail.evil-secure-login.net>",
+      "sender": "it-support@evil-secure-login.net",
+      "reply_to": "helpdesk@evil-secure-login.net",
+      "subject": "Urgent: Password Expiry – Reset Within 2 Hours",
+      "recipients": ["j.martinez@acme-corp.com", "a.chen@acme-corp.com"],
+      "urls": [
+        "https://evil-secure-login.net/owa/auth",
+        "https://evil-secure-login.net/static/login.js"
+      ],
+      "attachments": [],
+      "auth_results": {
+        "spf": "fail",
+        "dkim": "fail",
+        "dmarc": "fail"
+      }
+    },
+    "click_telemetry": {
+      "user": "j.martinez@acme-corp.com",
+      "clicked_url": "https://evil-secure-login.net/owa/auth",
+      "click_time": "2026-03-12T14:18:44Z",
+      "src_ip": "10.20.55.18"
+    },
+    "identity": {
+      "possible_credential_submission": true,
+      "new_session_from": "185.220.101.45",
+      "geo": "Unknown / Tor exit",
+      "mfa_challenged": false
+    }
+  },
+  "iocs_hint": {
+    "domains": ["evil-secure-login.net"],
+    "ips": ["185.220.101.45"],
+    "emails": ["it-support@evil-secure-login.net"],
+    "urls": ["https://evil-secure-login.net/owa/auth"]
+  },
+  "mitre_hint": ["T1566.002", "T1078"],
+  "analyst_notes": "User reported email after clicking. Possible credential harvest."
+}

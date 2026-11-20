@@ -1,0 +1,2 @@
+# Exact dependency snapshot verified on macOS arm64 with Python 3.14.8.
+-r requirements.lock.txt

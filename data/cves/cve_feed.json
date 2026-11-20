@@ -1,0 +1,135 @@
+{
+  "feed_name": "Mock SOC CVE Intelligence Feed",
+  "generated_at": "2026-03-01T00:00:00Z",
+  "vendor": "Internal Threat Intel",
+  "cves": [
+    {
+      "cve_id": "CVE-2024-3400",
+      "title": "Palo Alto Networks PAN-OS Command Injection",
+      "cvss_score": 10.0,
+      "severity": "CRITICAL",
+      "affected_products": ["PAN-OS 10.2", "PAN-OS 11.0", "PAN-OS 11.1"],
+      "description": "A command injection vulnerability in the GlobalProtect feature of Palo Alto Networks PAN-OS software allows unauthenticated attackers to execute arbitrary code with root privileges on the firewall.",
+      "exploit_status": "Active exploitation observed in the wild",
+      "mitigations": [
+        "Upgrade to fixed PAN-OS releases immediately",
+        "Disable GlobalProtect portal if unused",
+        "Apply Threat Prevention signatures from vendor advisory"
+      ],
+      "related_ttps": ["T1190", "T1059"],
+      "references": ["https://security.paloaltonetworks.com/CVE-2024-3400"]
+    },
+    {
+      "cve_id": "CVE-2023-34362",
+      "title": "MOVEit Transfer SQL Injection (Cl0p)",
+      "cvss_score": 9.8,
+      "severity": "CRITICAL",
+      "affected_products": ["MOVEit Transfer 2021.0", "MOVEit Transfer 2021.1", "MOVEit Transfer 2022.0", "MOVEit Transfer 2023.0"],
+      "description": "SQL injection in the MOVEit Transfer web application enables unauthenticated attackers to gain access to the database and subsequently execute arbitrary code, associated with Cl0p ransomware campaigns.",
+      "exploit_status": "Weaponized; mass exploitation campaigns documented",
+      "mitigations": [
+        "Apply Progress Software patches immediately",
+        "Disable HTTP/HTTPS traffic to MOVEit if patching delayed",
+        "Hunt for webshells under wwwroot"
+      ],
+      "related_ttps": ["T1190", "T1505.003", "T1486"],
+      "references": ["https://www.progress.com/security/moveit-transfer-and-moveit-cloud-vulnerability"]
+    },
+    {
+      "cve_id": "CVE-2024-21762",
+      "title": "Fortinet FortiOS Out-of-Bounds Write",
+      "cvss_score": 9.8,
+      "severity": "CRITICAL",
+      "affected_products": ["FortiOS", "FortiProxy"],
+      "description": "An out-of-bounds write in FortiOS SSL VPN may allow a remote unauthenticated attacker to execute arbitrary code or commands via specially crafted HTTP requests.",
+      "exploit_status": "Exploitation reported; prioritize internet-facing SSL VPN",
+      "mitigations": [
+        "Upgrade FortiOS to fixed versions",
+        "Disable SSL VPN if not required",
+        "Restrict SSL VPN access by geography and MFA"
+      ],
+      "related_ttps": ["T1190", "T1133"],
+      "references": ["https://www.fortiguard.com/psirt/FG-IR-24-015"]
+    },
+    {
+      "cve_id": "CVE-2021-44228",
+      "title": "Apache Log4j Remote Code Execution (Log4Shell)",
+      "cvss_score": 10.0,
+      "severity": "CRITICAL",
+      "affected_products": ["Apache Log4j 2.0 – 2.14.1"],
+      "description": "JNDI injection in Log4j allows remote code execution when attacker-controlled strings are logged. Remains relevant for legacy unpatched Java services.",
+      "exploit_status": "Widely exploited historically; still scanned continuously",
+      "mitigations": [
+        "Upgrade to Log4j 2.17.1+ or equivalent fixed release",
+        "Set log4j2.formatMsgNoLookups=true where applicable",
+        "Block outbound LDAP/RMI from app servers"
+      ],
+      "related_ttps": ["T1190", "T1059", "T1203"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2021-44228"]
+    },
+    {
+      "cve_id": "CVE-2024-27198",
+      "title": "JetBrains TeamCity Authentication Bypass",
+      "cvss_score": 9.8,
+      "severity": "CRITICAL",
+      "affected_products": ["TeamCity On-Premises < 2023.11.4"],
+      "description": "Authentication bypass vulnerability allowing unauthenticated attackers to perform admin actions on TeamCity servers, frequently leveraged for CI/CD compromise and cloud credential theft.",
+      "exploit_status": "Active scanning and exploitation",
+      "mitigations": [
+        "Upgrade TeamCity immediately",
+        "Remove TeamCity from direct internet exposure",
+        "Rotate all secrets stored in TeamCity after patching"
+      ],
+      "related_ttps": ["T1190", "T1078", "T1552"],
+      "references": ["https://www.jetbrains.com/privacy-security/issues-fixed/"]
+    },
+    {
+      "cve_id": "CVE-2023-4966",
+      "title": "Citrix NetScaler Information Disclosure (Session Hijacking)",
+      "cvss_score": 9.4,
+      "severity": "CRITICAL",
+      "affected_products": ["NetScaler ADC", "NetScaler Gateway"],
+      "description": "Sensitive information disclosure that can lead to session token theft ('CitrixBleed'), enabling authentication bypass on appliances.",
+      "exploit_status": "Mass exploitation observed; ransomware precursors",
+      "mitigations": [
+        "Apply Citrix mitigations and firmware updates",
+        "Kill all active sessions after patching",
+        "Rotate credentials for users who authenticated through the appliance"
+      ],
+      "related_ttps": ["T1190", "T1539", "T1550"],
+      "references": ["https://support.citrix.com/article/CTX584986"]
+    },
+    {
+      "cve_id": "CVE-2024-4577",
+      "title": "PHP CGI Argument Injection (Windows)",
+      "cvss_score": 9.8,
+      "severity": "CRITICAL",
+      "affected_products": ["PHP 8.1/8.2/8.3 on Windows CGI"],
+      "description": "Argument injection in PHP CGI mode on Windows allows remote code execution, exploited against internet-facing PHP applications.",
+      "exploit_status": "Public PoCs and opportunistic exploitation",
+      "mitigations": [
+        "Upgrade PHP to patched versions",
+        "Avoid exposing PHP-CGI directly to the internet",
+        "Deploy WAF rules blocking crafted query strings"
+      ],
+      "related_ttps": ["T1190", "T1059"],
+      "references": ["https://nvd.nist.gov/vuln/detail/CVE-2024-4577"]
+    },
+    {
+      "cve_id": "CVE-2022-41040",
+      "title": "Microsoft Exchange Server SSRF",
+      "cvss_score": 8.8,
+      "severity": "HIGH",
+      "affected_products": ["Microsoft Exchange Server 2013", "2016", "2019"],
+      "description": "Server-side request forgery in Exchange allows authenticated attackers to elevate and, chained with RCE flaws, take over Exchange servers.",
+      "exploit_status": "Chained with RCE in the wild historically",
+      "mitigations": [
+        "Apply Exchange cumulative updates and security patches",
+        "Enable Exchange Emergency Mitigation Service",
+        "Restrict Outlook Web Access exposure"
+      ],
+      "related_ttps": ["T1190", "T1133"],
+      "references": ["https://msrc.microsoft.com/update-guide/vulnerability/CVE-2022-41040"]
+    }
+  ]
+}

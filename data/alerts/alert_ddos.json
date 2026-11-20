@@ -1,0 +1,44 @@
+{
+  "alert_id": "ALT-2026-0310-0155",
+  "timestamp": "2026-03-10T16:02:48Z",
+  "source": "CDN Scrubbing Center + NOC",
+  "severity": "Critical",
+  "rule_name": "Volumetric UDP Amplification + L7 HTTP Flood",
+  "status": "new",
+  "raw_event": {
+    "targets": [
+      {"hostname": "api.acme-corp.com", "ip": "203.0.113.50"},
+      {"hostname": "www.acme-corp.com", "ip": "203.0.113.10"}
+    ],
+    "attack": {
+      "type": ["volumetric_udp", "http_get_flood"],
+      "peak_gbps": 84.5,
+      "peak_pps": 22000000,
+      "peak_rps": 450000,
+      "start": "2026-03-10T15:47:00Z",
+      "protocols": ["UDP/123", "UDP/53", "HTTP/443"],
+      "top_uris": ["/api/v2/search", "/"]
+    },
+    "impact": {
+      "availability": "degraded",
+      "error_rate_pct": 37.2,
+      "p99_latency_ms": 9200,
+      "origin_direct_hits": true
+    },
+    "top_source_countries": ["RU", "VN", "BR", "US"],
+    "top_source_asns": ["AS12389", "AS20473", "AS63949"],
+    "sample_source_ips": [
+      "198.51.100.24",
+      "198.51.100.88",
+      "203.0.113.200"
+    ],
+    "ransom_note_email": null
+  },
+  "iocs_hint": {
+    "ips": ["198.51.100.24", "198.51.100.88", "203.0.113.200", "203.0.113.50"],
+    "asns": ["AS12389", "AS20473", "AS63949"],
+    "hostnames": ["api.acme-corp.com", "www.acme-corp.com"]
+  },
+  "mitre_hint": ["T1498", "T1498.001"],
+  "analyst_notes": "Mixed L3/L4 and L7. Origin IP may be exposed; enable scrubbing and origin lock."
+}

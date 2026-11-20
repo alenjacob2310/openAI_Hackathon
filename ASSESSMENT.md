@@ -74,3 +74,8 @@ The Streamlit UI now includes a responsive SOC Copilot incident workspace, alert
 Added an idempotent local simulator setup command that creates missing random secrets without logging them or replacing existing values. The network UI now disables heartbeat until credentials and all three nodes are ready, gives precise setup instructions, and reports successful heartbeat acceptance. Environment-provided values take precedence over local dotenv values. Streamlit secrets files are excluded from Git.
 
 **Validation:** 31 tests passed. Verified all three localhost nodes healthy and an authenticated heartbeat from 8001 to 8002 accepted with HTTP 200. Cloud deployment uses a smaller explicit runtime dependency list with Python 3.14. Cloud hosting itself still requires a signed-in Streamlit account; this preparation does not claim a successful cloud deployment.
+
+
+### Cloud deployment verified
+
+The existing Streamlit Community Cloud deployment at https://openaihackathon-soc-copilot.streamlit.app/ was verified after the simulator fix reached `main`. In the live cloud UI, the phishing sample generated 13 cited review steps and a downloadable incident ticket that kept root cause unconfirmed and did not claim completed containment. The cloud network page displayed setup guidance and a disabled heartbeat button because its local node services were absent. On the local machine, all three nodes were online and a UI-triggered authenticated heartbeat was accepted with HTTP 200. No cloud OpenAI embedding call or real containment action was performed.

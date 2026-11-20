@@ -4,10 +4,12 @@ from __future__ import annotations
 
 import random
 import time
+from html import escape
 
 import streamlit as st
 
 from network import NODE_PORTS
+from network.secrets_store import simulator_config_status
 from ui.client import fetch_all_metrics, send_mesh_heartbeat
 from ui.styles import banner, inject_styles
 from ui.viz import mesh_svg, node_card_html
@@ -28,14 +30,25 @@ def page() -> None:
     )
     _ensure_history()
 
+    readiness = simulator_config_status()
+    initial_metrics = fetch_all_metrics()
+    nodes_ready = all((initial_metrics.get(port) or {}).get("online") for port in NODE_PORTS)
+    if not readiness['configured']:
+        st.info("This page controls an optional localhost simulator. Configure it locally before sending heartbeats.")
+        st.code("python scripts/setup_simulator.py\npython -m network.run_nodes", language="bash")
+        st.caption("On Streamlit Community Cloud, the incident workspace works without this simulator. Local nodes on your computer are not reachable as the cloud app's localhost.")
+    elif not nodes_ready:
+        st.info("Simulator credentials are configured. Start the three local nodes to enable heartbeats.")
+        st.code("python -m network.run_nodes", language="bash")
+
     top = st.columns([1, 1, 1, 1])
     with top[0]:
-        auto = st.toggle("Auto-refresh (3s)", value=True)
+        auto = st.toggle("Auto-refresh (3s)", value=nodes_ready)
     with top[1]:
         if st.button("Refresh now", use_container_width=True):
             st.rerun()
     with top[2]:
-        send = st.button("Send mesh heartbeat", type="primary", use_container_width=True)
+        send = st.button("Send mesh heartbeat", type="primary", width="stretch", disabled=not (readiness["configured"] and nodes_ready))
     with top[3]:
         clear = st.button("Clear history", use_container_width=True)
 
@@ -48,6 +61,8 @@ def page() -> None:
         src, dst = random.sample(list(NODE_PORTS), 2)
         try:
             result = send_mesh_heartbeat(src, dst)
+            if result.get("_http_status") != 200 or result.get("accepted") is not True:
+                raise RuntimeError(f"Node rejected heartbeat (HTTP {result.get('_http_status')}): {result.get('detail', 'not accepted')}")
             st.session_state.last_mesh_hop = (src, dst)
             st.session_state.mesh_history.append(
                 {
@@ -60,6 +75,7 @@ def page() -> None:
                 }
             )
             st.session_state.mesh_history = st.session_state.mesh_history[-30:]
+            st.success(f"Heartbeat accepted: {src} → {dst}")
         except Exception as exc:  # noqa: BLE001
             st.error(f"Heartbeat failed: {exc}")
 
@@ -122,7 +138,7 @@ def page() -> None:
                 f'<span class="pill {pill}">{item.get("ts")}</span> '
                 f'<span class="mono">{item.get("src")} → {item.get("dst")} · '
                 f'HTTP {item.get("status")} · accepted={item.get("accepted")}</span>'
-                f'<div class="mono">{item.get("detail") or ""}</div>'
+                f'<div class="mono">{escape(str(item.get("detail") or ""))}</div>'
                 f"</div>",
                 unsafe_allow_html=True,
             )

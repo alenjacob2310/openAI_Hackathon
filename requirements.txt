@@ -1,2 +1,15 @@
-# Exact dependency snapshot verified on macOS arm64 with Python 3.14.8.
--r requirements.lock.txt
+# Runtime dependencies for Streamlit Community Cloud (Python 3.14).
+# requirements.lock.txt retains the complete tested local environment snapshot.
+streamlit==1.67.0
+langchain-core==1.8.3
+langchain-openai==1.8.3
+langchain-chroma==1.1.0
+langgraph==1.2.22
+chromadb==1.5.9
+python-dotenv==1.2.4
+pydantic==2.14.3
+fastapi==0.165.0
+uvicorn==0.54.0
+httpx==0.28.1
+PyJWT==2.15.1
+psutil==7.2.2

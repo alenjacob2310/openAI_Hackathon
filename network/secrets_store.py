@@ -20,7 +20,7 @@ def secret_env_key(port: int) -> str:
 
 
 def load_secret(port: int) -> str:
-    load_dotenv(ENV_PATH, override=True)
+    load_dotenv(ENV_PATH, override=False)
     key = secret_env_key(port)
     value = os.getenv(key)
     if not value:
@@ -50,9 +50,17 @@ def rotate_secret(port: int) -> str:
 
 
 def mesh_credentials() -> tuple[str, str]:
-    load_dotenv(ENV_PATH, override=True)
+    load_dotenv(ENV_PATH, override=False)
     user = os.getenv("MESH_SERVICE_USER", "mesh-service")
     password = os.getenv("MESH_SERVICE_PASSWORD", "")
     if not password:
-        raise RuntimeError("Set MESH_SERVICE_PASSWORD in .env for the optional simulator")
+        raise RuntimeError("Simulator credentials missing. Run python scripts/setup_simulator.py, then python -m network.run_nodes locally.")
     return user, password
+
+
+def simulator_config_status() -> dict[str, object]:
+    """Readiness only; never expose credential values to the UI."""
+    load_dotenv(ENV_PATH, override=False)
+    required = ('MESH_SERVICE_PASSWORD', *(secret_env_key(port) for port in (8001, 8002, 8003)))
+    missing = [key for key in required if not os.getenv(key)]
+    return {'configured': not missing, 'missing': missing}

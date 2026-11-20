@@ -67,3 +67,10 @@ Chroma tests use deterministic local test embeddings. This validates storage, fi
 The Streamlit UI now includes a responsive SOC Copilot incident workspace, alert selection/JSON import, explicitly labeled local demo and vector retrieval modes, interactive SOP review checkboxes, progress tracking, numbered source popovers, an IoC table/export, searchable evidence, analyst ticket notes, and investigation JSON export. The local demo adapter uses bundled sources directly and makes no OpenAI/vector-retrieval claim. Core retrieval and ticket generators remain connected to the interface.
 
 **Validation:** 27 automated tests passed after the update. New UI tests cover a full offline demo/review/ticket flow, incident and mode isolation, missing-key behavior, unknown-alert refusal, and evidence filtering. Browser verification at desktop and narrow-screen sizes confirmed the layout, full checklist text wrapping, citation source details, review progress, and a generated downloadable ticket. A desktop screenshot is included in `ui/previews/incident-workspace.jpg`. Live OpenAI API behavior remains outside this validation.
+
+
+## Simulator setup and cloud preparation — November 20, 2026
+
+Added an idempotent local simulator setup command that creates missing random secrets without logging them or replacing existing values. The network UI now disables heartbeat until credentials and all three nodes are ready, gives precise setup instructions, and reports successful heartbeat acceptance. Environment-provided values take precedence over local dotenv values. Streamlit secrets files are excluded from Git.
+
+**Validation:** 31 tests passed. Verified all three localhost nodes healthy and an authenticated heartbeat from 8001 to 8002 accepted with HTTP 200. Cloud deployment uses a smaller explicit runtime dependency list with Python 3.14. Cloud hosting itself still requires a signed-in Streamlit account; this preparation does not claim a successful cloud deployment.

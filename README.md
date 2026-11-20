@@ -78,9 +78,10 @@ network/, src/monitor_agent.py  Optional localhost simulation
 
 This is an extra demo, outside the four core requirements. It simulates mesh telemetry and containment; it is not an EDR, firewall, IAM, S3, or production SOC integration.
 
-Set unique random `JWT_SECRET_8001`, `JWT_SECRET_8002`, `JWT_SECRET_8003`, and `MESH_SERVICE_PASSWORD` in `.env`. For example generate each value with `python -c 'import secrets; print(secrets.token_urlsafe(32))'`. Never reuse the original archive's secrets.
+Run `python scripts/setup_simulator.py` once to create missing random node JWT secrets and the mesh service password in your ignored local `.env`. The command preserves existing nonempty settings and never prints secret values. Then start the nodes. Never reuse the original archive's secrets.
 
 ```bash
+python scripts/setup_simulator.py
 python -m network.run_nodes
 ```
 
@@ -91,3 +92,12 @@ Nodes bind to `127.0.0.1`. Administrative actions require a service/admin JWT. D
 ## Remaining work before production
 
 Obtain organization-approved and version-controlled SOPs, validate real alert schemas and classification quality, add authenticated application access and tenant isolation, protect ticket/evidence data, integrate live threat intelligence with product/version applicability checks, and connect a ticketing system if required. Measure analyst containment-time improvement with a realistic labeled evaluation set. The optional simulator still needs a full execution-policy and threat-model review before any external deployment.
+
+
+## Streamlit Community Cloud deployment
+
+Deploy the GitHub repository `alenjacob2310/openAI_Hackathon`, branch `main`, entrypoint `app.py`. In **Advanced settings**, select **Python 3.14** to match the tested interpreter. `requirements.txt` contains runtime dependencies; `requirements.lock.txt` remains the full local development snapshot. Start with Local demo mode: no API secret is required. For vector retrieval, add your own `OPENAI_API_KEY` through Community Cloud's app secrets, never GitHub.
+
+The network simulator is a separate local service. Deploying the Streamlit UI does not start ports 8001–8003, and a cloud app's localhost is not your computer. Heartbeat is disabled until credentials and all three nodes are available in the same environment. The cloud incident workspace can still parse alerts, show bundled cited SOPs, and generate tickets in Local demo mode.
+
+Official deployment instructions: https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy

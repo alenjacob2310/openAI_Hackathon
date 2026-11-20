@@ -13,6 +13,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from network import NODE_PORTS
+from network.secrets_store import simulator_config_status
 
 
 def _start(port: int) -> None:
@@ -26,6 +27,9 @@ def _start(port: int) -> None:
 
 
 def main() -> None:
+    readiness = simulator_config_status()
+    if not readiness['configured']:
+        raise SystemExit('Simulator settings missing: ' + ', '.join(readiness['missing']) + '. Run python scripts/setup_simulator.py first.')
     procs: list[multiprocessing.Process] = []
     for port in NODE_PORTS:
         p = multiprocessing.Process(target=_start, args=(port,), name=f"node-{port}")

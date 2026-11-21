@@ -4,7 +4,7 @@ Live demo: [SOC Copilot on Streamlit Cloud](https://openaihackathon-soc-copilot.
 
 Hackathon problem 4A: JSON alert → IoCs/classification → Chroma retrieval → exact cited organizational steps → one-click Markdown incident ticket.
 
-The working copy was reviewed and repaired from `openAI_Hackaton.zip`. See [ASSESSMENT.md](ASSESSMENT.md) for findings, changes, and validation limits. Offline output examples are in [examples/](examples/).
+See [ASSESSMENT.md](ASSESSMENT.md) for findings, changes, and validation limits. Offline output examples are in [examples/](examples/).
 
 ## Quick start (macOS/Linux)
 

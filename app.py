@@ -1,8 +1,8 @@
 """
 SOC Copilot — Streamlit entrypoint.
 
-Pages:
-  Overview · Network Activity · Attack Scenarios · Logs · AI Agent · Remediation
+Left-hand navigation:
+  Main · Investigate
 """
 
 from __future__ import annotations
@@ -23,19 +23,37 @@ st.set_page_config(
     initial_sidebar_state="auto",
 )
 
-st.logo(str(ROOT / "ui" / "assets" / "logo.svg"), size="large", icon_image=str(ROOT / "ui" / "assets" / "mark.svg"))
+st.logo(
+    str(ROOT / "ui" / "assets" / "logo.svg"),
+    size="large",
+    icon_image=str(ROOT / "ui" / "assets" / "mark.svg"),
+)
 
-overview = st.Page("ui/pages/overview.py", title="Overview", icon="🛡️", default=False)
+# Top of sidebar (dashboard.py is not modified)
+dashboard = st.Page("ui/pages/dashboard.py", title="Dashboard", icon="🛡️", default=True)
+
+# Investigate
+agent = st.Page(
+    "ui/pages/ai_agent.py",
+    title="Incident workspace",
+    icon="🤖",
+)
+knowledge = st.Page(
+    "ui/pages/knowledge_base.py",
+    title="Knowledge Base",
+    icon="📚",
+)
+logs = st.Page("ui/pages/logs_page.py", title="Logs", icon="📋")
+
 network = st.Page("ui/pages/network_activity.py", title="Network Activity", icon="📡")
 scenarios = st.Page("ui/pages/scenarios.py", title="Attack Scenarios", icon="⚡")
-logs = st.Page("ui/pages/logs_page.py", title="Logs", icon="📋")
-agent = st.Page("ui/pages/ai_agent.py", title="Incident workspace", icon="🤖", default=True)
 remediation = st.Page("ui/pages/remediation.py", title="Remediation", icon="🛠️")
 
 nav = st.navigation(
     {
-        "Investigate": [agent, logs],
-        "Local simulation": [overview, network, scenarios, remediation],
+        "Main": [dashboard],
+        "Investigate": [agent, knowledge, logs],
+        "Local simulation": [network, scenarios, remediation],
     }
 )
 nav.run()

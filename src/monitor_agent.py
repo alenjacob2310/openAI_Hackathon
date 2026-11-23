@@ -1,5 +1,5 @@
 """
-LangGraph monitoring & remediation agent.
+Monitoring & remediation agent.
 
 Pipeline:
   collect_telemetry → detect_incident → retrieve_sop → plan_remediation
@@ -10,8 +10,6 @@ from __future__ import annotations
 
 import json
 import re
-import os
-
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, TypedDict
@@ -63,6 +61,104 @@ def _append_agent_log(record: dict[str, Any]) -> None:
     AGENT_LOG.parent.mkdir(parents=True, exist_ok=True)
     with AGENT_LOG.open("a", encoding="utf-8") as f:
         f.write(json.dumps({"ts": datetime.now(timezone.utc).isoformat(), **record}) + "\n")
+
+
+def _scenario_label(scenario: str | None) -> str:
+    labels = {
+        "ddos": "DDoS",
+        "phishing": "Phishing",
+        "ransomware": "Ransomware",
+        "credential_stuffing": "Credential stuffing",
+    }
+    key = (scenario or "unknown").lower()
+    return labels.get(key, (scenario or "unknown").replace("_", " ").title())
+
+
+def _format_detect_detail(detection: dict[str, Any]) -> str:
+    if not detection.get("incident_detected"):
+        return "No incident detected"
+    label = _scenario_label(str(detection.get("scenario") or "unknown"))
+    conf = detection.get("confidence")
+    try:
+        conf_s = f"{float(conf):.0%}" if conf is not None else "n/a"
+    except (TypeError, ValueError):
+        conf_s = str(conf)
+    sev = detection.get("severity") or "unknown"
+    port = detection.get("target_port")
+    port_s = f" on :{port}" if port else ""
+    evidence = [str(e) for e in (detection.get("evidence") or [])[:3] if e]
+    evidence_s = f" — evidence: {'; '.join(evidence)}" if evidence else ""
+    ips = [str(i) for i in (detection.get("attacker_ips") or [])[:3] if i]
+    ips_s = f"; attackers={', '.join(ips)}" if ips else ""
+    return f"Detected {label} attack (confidence={conf_s}, severity={sev}){port_s}{ips_s}{evidence_s}"
+
+
+def _summarize_sop_actions(docs: list[dict[str, Any]], scenario: str | None) -> str:
+    """Short analyst-facing summary of actions implied by retrieved SOP chunks."""
+    if not docs:
+        return "No SOP chunks retrieved"
+    sources = []
+    action_hints: list[str] = []
+    action_re = re.compile(
+        r"(?im)^(?:\s*(?:\d+[.)]\s+|[-*]\s+|###?\s*)?)?"
+        r"((?:isolat|contain|block|quarantine|rotat|reset|disable|rate.?limit|"
+        r"revoke|notify|scour|wipe|restore|patch|segment|kill|edr)[^\n.]{0,90})",
+    )
+    for doc in docs:
+        meta = doc.get("metadata") or {}
+        src = meta.get("source") or meta.get("title")
+        if src and src not in sources:
+            sources.append(str(src))
+        text = doc.get("content") or ""
+        for match in action_re.finditer(text):
+            hint = re.sub(r"\s+", " ", match.group(1)).strip(" -•*")
+            if len(hint) < 12:
+                continue
+            if hint.lower() not in {h.lower() for h in action_hints}:
+                action_hints.append(hint[:110])
+            if len(action_hints) >= 4:
+                break
+        if len(action_hints) >= 4:
+            break
+
+    label = _scenario_label(scenario)
+    src_s = ", ".join(sources[:3]) if sources else "playbooks"
+    if action_hints:
+        steps = "; ".join(action_hints[:4])
+        return f"{label} SOP ({len(docs)} chunks from {src_s}): {steps}"
+    # Fallback: first sentence-ish from top chunk
+    first = re.sub(r"\s+", " ", (docs[0].get("content") or "")[:180]).strip()
+    return f"{label} SOP ({len(docs)} chunks from {src_s}): {first}…"
+
+
+def _format_execute_detail(results: list[dict[str, Any]], port: int) -> str:
+    if not results:
+        return "No remediation actions executed"
+    parts: list[str] = []
+    ok = 0
+    for r in results:
+        req = r.get("request") or {}
+        resp = r.get("response") or {}
+        action = req.get("action") or "unknown"
+        status_ok = r.get("http_status") == 200 and resp.get("status") == "ok"
+        if status_ok:
+            ok += 1
+        mark = "OK" if status_ok else f"FAIL({r.get('http_status')})"
+        extras: list[str] = []
+        ips = req.get("ips") or []
+        urls = req.get("urls") or []
+        if ips:
+            extras.append("ips=" + ",".join(str(i) for i in ips[:3]))
+        if urls:
+            extras.append("urls=" + ",".join(str(u) for u in urls[:2]))
+        if req.get("rate_limit_rps") is not None:
+            extras.append(f"rps={req.get('rate_limit_rps')}")
+        reason = req.get("reason")
+        if reason:
+            extras.append(f"reason={reason}")
+        extra_s = f" ({'; '.join(extras)})" if extras else ""
+        parts.append(f"{action}{extra_s} [{mark}]")
+    return f"Executed on :{port} ({ok}/{len(results)} OK): " + "; ".join(parts)
 
 
 def _read_recent_logs(limit: int = 40) -> list[dict[str, Any]]:
@@ -216,14 +312,15 @@ def node_detect_incident(state: MonitorState) -> MonitorState:
         detection["scenario"] = hint
         detection["incident_detected"] = True
 
-    _append_agent_log({"event": "detect", "detection": detection})
+    detail = _format_detect_detail(detection)
+    _append_agent_log({"event": "detect", "detail": detail, "detection": detection})
     return {
         **state,
         "detection": detection,
         "agent_trace": _trace(
             state,
             "detect_incident",
-            f"{detection.get('scenario')} conf={detection.get('confidence')}",
+            detail,
             detection,
         ),
     }
@@ -314,11 +411,25 @@ def node_retrieve_sop(state: MonitorState) -> MonitorState:
             "agent_trace": _trace(state, "retrieve_sop", f"RAG failed: {exc}"),
         }
 
+    detail = _summarize_sop_actions(docs, scenario)
+    _append_agent_log(
+        {
+            "event": "retrieve_sop",
+            "detail": detail,
+            "query": query,
+            "sources": [((d.get("metadata") or {}).get("source")) for d in docs],
+        }
+    )
     return {
         **state,
         "retrieval_query": query,
         "retrieved_docs": docs,
-        "agent_trace": _trace(state, "retrieve_sop", f"{len(docs)} chunks", {"query": query}),
+        "agent_trace": _trace(
+            state,
+            "retrieve_sop",
+            detail,
+            {"query": query, "n_docs": len(docs)},
+        ),
     }
 
 
@@ -603,3 +714,29 @@ def run_monitor_agent(
         }
     )
     return result
+
+
+def iter_monitor_agent(
+    *,
+    hint_scenario: str | None = None,
+    focus_port: int | None = None,
+    hint_context: dict[str, Any] | None = None,
+):
+    """
+    Stream full state after each Agent node so the UI can highlight steps live.
+    Yields MonitorState dicts in pipeline order.
+    """
+    agent = get_monitor_agent()
+    initial: MonitorState = {
+        "hint_scenario": hint_scenario,
+        "focus_port": focus_port,
+        "hint_context": hint_context or {},
+        "agent_trace": [],
+    }
+    last: dict[str, Any] = dict(initial)
+    for state in agent.stream(initial, stream_mode="values"):
+        last = state
+        yield state
+    # Ensure callers always get a final state
+    if last is not None:
+        return

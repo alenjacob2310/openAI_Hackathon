@@ -69,7 +69,7 @@ def test_exact_grounding():
         assert record['content'] in line
     text, citations = render_grounded_checklist({'attack_classification':'Phishing'}, records)
     assert 'MG-PHISH-03' in text
-    assert len(citations) == 13
+    assert len(citations) == 14
     assert all('phishing.md:' in c for c in citations)
     with pytest.raises(ValueError): render_grounded_checklist({'attack_classification':'Unknown'}, records)
 

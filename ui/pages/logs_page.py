@@ -18,7 +18,7 @@ def page() -> None:
     inject_styles()
     banner(
         "Logs",
-        "Node JSONL signals + LangGraph agent.jsonl (detect / plan / execute)",
+        "Node JSONL signals + agent.jsonl (detect / plan / execute)",
     )
 
     c1, c2, c3 = st.columns([1, 1, 2])
@@ -76,7 +76,7 @@ def page() -> None:
     else:
         st.dataframe(incidents, use_container_width=True)
 
-    st.subheader("LangGraph agent log")
+    st.subheader("Agent log")
     agent_rows = read_agent_logs(limit=60)
     if not agent_rows:
         st.caption("No agent.jsonl entries yet.")

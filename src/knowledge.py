@@ -11,24 +11,58 @@ CATEGORIES = {
     'public_s3_bucket': 'Public S3 Bucket',
 }
 
+def numbered_steps(text: str) -> list[dict]:
+    """Extract complete Markdown list items, retaining indented conditions and source spans."""
+    lines = text.splitlines()
+    records = []
+    section = ''
+    in_fence = False
+    index = 0
+    while index < len(lines):
+        line = lines[index]
+        if line.lstrip().startswith(('```', '~~~')):
+            in_fence = not in_fence
+        if in_fence:
+            index += 1
+            continue
+        if line.startswith('## '):
+            section = line[3:]
+        match = re.match(r'^(\d+)\.\s+(.+)$', line)
+        escalation = section == 'Escalation Criteria' and line.startswith('- ')
+        if not match and not escalation:
+            index += 1
+            continue
+        first = index
+        body = [match.group(2) if match else line[2:]]
+        index += 1
+        while index < len(lines):
+            following = lines[index]
+            if following.startswith(('  ', '\t')):
+                body.append(following)
+                index += 1
+            elif not following.strip() and index + 1 < len(lines) and lines[index + 1].startswith(('  ', '\t')):
+                body.append(following)
+                index += 1
+            else:
+                break
+        records.append(dict(content='\n'.join(body), section=section,
+                            step=match.group(1) if match else str(first + 1),
+                            line_start=first + 1, line_end=index))
+    return records
+
+
 def playbook_records(directory: Path) -> list[dict]:
     records = []
     for path in sorted(directory.glob('*.md')):
-        lines = path.read_text(encoding='utf-8').splitlines()
-        sop_id = lines[0].split(':', 1)[0].lstrip('# ')
-        section = ''
-        for number, line in enumerate(lines, 1):
-            if line.startswith('## '):
-                section = line[3:]
-            match = re.match(r'^(\d+)\.\s+(.+)$', line)
-            if not match and not (section == 'Escalation Criteria' and line.startswith('- ')):
-                continue
-            step = match.group(1) if match else str(number)
-            text = match.group(2) if match else line[2:]
+        text = path.read_text(encoding='utf-8')
+        if not text.strip():
+            continue
+        sop_id = text.splitlines()[0].split(':', 1)[0].lstrip('# ')
+        for step in numbered_steps(text):
             meta = dict(source=path.name, doc_type='playbook', title=path.stem.replace('_', ' ').title(),
                         classification=CATEGORIES.get(path.stem, 'Unknown'), sop_id=sop_id,
-                        section=section, step=step, line_start=number, line_end=number)
-            records.append(dict(content=text, metadata=meta))
+                        **{key: value for key, value in step.items() if key != 'content'})
+            records.append(dict(content=step['content'], metadata=meta))
     return records
 
 def cve_records(path: Path) -> list[dict]:

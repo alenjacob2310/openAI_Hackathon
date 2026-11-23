@@ -1,5 +1,6 @@
-"""Shared SOC Copilot design system. All interpolated content is escaped."""
+"""Shared SOC Copilot design system + dashboard panel styles. Interpolated content is escaped."""
 from html import escape
+
 import streamlit as st
 
 CSS = """
@@ -9,6 +10,13 @@ CSS = """
 .block-container { max-width: 1510px; padding: 2.1rem 2.5rem 3rem; }
 [data-testid="stSidebar"] { background: #101720; border-right: 1px solid #25303e; }
 [data-testid="stSidebar"] [data-testid="stSidebarNav"] { padding-top: .5rem; }
+[data-testid="stSidebar"] [data-testid="stSidebarNav"] a { border-radius: 8px; }
+[data-testid="stSidebar"] [data-testid="stSidebarNav"] a[aria-current="page"] {
+  background: #173b3c; color: #5de4cf;
+}
+[data-testid="stSidebarNav"] [data-testid="stCaptionContainer"] {
+  color: #8293ab; text-transform: uppercase; letter-spacing: .1em; font-size: .65rem;
+}
 h1,h2,h3 { letter-spacing: -.035em; }
 h1 { font-size: 2rem !important; font-weight: 650 !important; }
 h2 { font-size: 1.35rem !important; }
@@ -49,21 +57,32 @@ h3 { font-size: 1.06rem !important; }
 [data-testid="stCheckbox"] label p { font-size:.82rem;line-height:1.7;white-space:normal !important;display:block; }
 [data-testid="stAlert"] { font-size:.82rem; }
 .soc-banner { border-bottom:1px solid #263242;padding:1rem 0;margin-bottom:1rem; }
-.soc-banner p { color:#91a1b7; }
+.soc-banner h1 { margin:0 0 .35rem 0; color:#eff5fc; }
+.soc-banner p { color:#91a1b7; margin:0; }
 .node-card { background:#141c26;border:1px solid #263242;border-radius:12px;padding:1rem;color:#e7edf5; }
 .node-card.offline { opacity:.6; }
 .node-card.isolated { border-color:#e9a26c; }
+.node-card .port { font-size:1.1rem; font-weight:700; margin:0; }
 .node-card .status-ok { color:#5de4cf; }
 .node-card .status-bad { color:#ff9bab; }
 .node-card .status-iso { color:#ffc292; }
 .mesh-svg-wrap { background:#121a24;border:1px solid #263242;border-radius:12px;padding:.5rem; }
+.arch-svg-wrap { background:#121a24;border-radius:8px;padding:.2rem; }
 .pill { display:inline-block;border-radius:6px;font-size:.7rem;padding:.15rem .45rem;margin-right:.35rem; }
 .pill-info { background:#1d2a39;color:#bad0eb; }
 .pill-ok { background:#173b32;color:#8ce9c7; }
 .pill-warn { background:#35271f;color:#ffc292; }
 .pill-crit { background:#35212a;color:#ffb0b9; }
 .timeline-item { border-left:2px solid #3c626c;padding:.3rem 0 .6rem .8rem;margin-bottom:.4rem; }
+.timeline-item.remediated { border-left-color:#5de4cf; }
+.timeline-item.attack { border-left-color:#ff9bab; }
+.timeline-item.agent { border-left-color:#7eb6ff; }
 .mono { font-family:ui-monospace,Consolas,monospace;font-size:.8rem; }
+.attack-row { border:1px solid #263242;border-radius:8px;padding:.55rem .65rem;margin-bottom:.4rem;background:#121a24; }
+.attack-row h4 { margin:0 0 .2rem 0;font-size:.92rem;color:#e8f3fa; }
+.attack-row p { margin:0;font-size:.78rem;color:#9eb8cb; }
+.panel { border:1px solid #263242;border-radius:10px;background:#121a24;color:#dceaf4;padding:.65rem .8rem;margin-bottom:.65rem; }
+.panel-title { margin:0 0 .45rem 0;font-size:.78rem;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:#8eb6d0;border-bottom:1px solid #263242;padding-bottom:.35rem; }
 @media(max-width:850px) { .block-container { padding:1.2rem 1rem 2rem; } .soc-title { font-size:1.8rem; } .soc-stat { min-height:98px;padding:.8rem; } }
 @media(max-width:640px) {
 [data-testid="stHorizontalBlock"]:has(.soc-stat) { flex-wrap:wrap;gap:.6rem; }
@@ -71,6 +90,10 @@ h3 { font-size: 1.06rem !important; }
 .soc-stat { min-height:95px;margin-bottom:.2rem; }
 .soc-stat-foot { display:none; }
 }
+@media(max-width:1100px) {
+.st-key-dashboard_panels [data-testid="stHorizontalBlock"]:has(.arch-svg-wrap):has(.mesh-svg-wrap) > [data-testid="stColumn"] { width:100% !important;min-width:100% !important;flex:1 1 100% !important; }
+}
+.arch-svg-wrap svg, .mesh-svg-wrap svg { display:block; }
 </style>
 """
 
@@ -80,12 +103,36 @@ def inject_styles() -> None:
 
 
 def banner(title: str, subtitle: str) -> None:
-    st.markdown(f'<div class="soc-banner"><h1>{escape(title)}</h1><p>{escape(subtitle)}</p></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="soc-banner"><h1>{escape(title)}</h1><p>{escape(subtitle)}</p></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def brand() -> None:
-    st.markdown('<div class="soc-brand"><div class="soc-brand-mark">S</div><div><div class="soc-brand-name">SOC Copilot<span style="color:#5de4cf">.</span></div><div class="soc-brand-sub">Incident response workspace</div></div></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="soc-brand"><div class="soc-brand-mark">S</div><div>'
+        '<div class="soc-brand-name">SOC Copilot<span style="color:#5de4cf">.</span></div>'
+        '<div class="soc-brand-sub">Incident response workspace</div></div></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def stat_card(label: str, value: str, foot: str) -> None:
-    st.markdown(f'<div class="soc-stat"><div class="soc-stat-label">{escape(label)}</div><div class="soc-stat-value">{escape(str(value))}</div><div class="soc-stat-foot">{escape(foot)}</div></div>', unsafe_allow_html=True)
+    st.markdown(
+        f'<div class="soc-stat"><div class="soc-stat-label">{escape(label)}</div>'
+        f'<div class="soc-stat-value">{escape(str(value))}</div>'
+        f'<div class="soc-stat-foot">{escape(foot)}</div></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def panel_open(title: str, extra_class: str = "") -> None:
+    st.markdown(
+        f'<div class="panel {escape(extra_class, quote=True)}"><div class="panel-title">{escape(title)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def panel_close() -> None:
+    st.markdown("</div>", unsafe_allow_html=True)

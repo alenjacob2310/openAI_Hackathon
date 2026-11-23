@@ -115,7 +115,7 @@ def page() -> None:
                         st.error(str(exc))
 
     st.divider()
-    if st.button("Run all 4 scenarios (random order)", type="primary", disabled=not can_execute):
+    if st.button("Run all 4 scenarios (ransomware last)", type="primary", disabled=not can_execute):
         with st.spinner("Full suite: inject → LangGraph remediate…"):
             try:
                 results = run_all_scenarios_api()

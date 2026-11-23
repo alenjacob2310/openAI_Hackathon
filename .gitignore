@@ -9,3 +9,6 @@ tickets/
 .DS_Store
 
 .streamlit/secrets.toml
+
+# Uploaded knowledge may be private; do not publish runtime additions.
+data/uploads/

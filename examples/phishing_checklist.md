@@ -1,4 +1,4 @@
-> Offline example generated from bundled sample files. This does not demonstrate live OpenAI embedding retrieval.
+> Offline example from bundled sample files; no live OpenAI retrieval is claimed.
 
 ## Attack Classification
 Phishing
@@ -41,27 +41,29 @@ All actions below are recommendations; execution is not recorded by this assista
 
 - [ ] **Identify impacted users** — Search mail logs for recipients who received the same message-ID or identical subject/sender within the last 72 hours. [4]
 
+- [ ] **Check mesh telemetry** — Note `phishing_hits`, malicious URLs, and target port from `/metrics`. [5]
+
 ## Containment Checklist
 
-- [ ] **Quarantine the message** across the enterprise mail system using the message-ID or exact subject+sender pair (cite mail gateway policy MG-PHISH-03). [5]
+- [ ] **Quarantine the message** across the enterprise mail system using the message-ID or exact subject+sender pair (MG-PHISH-03). [6]
 
-- [ ] **Block malicious URLs/domains** at the secure web gateway and DNS firewall (policy NET-URL-BLOCK-01). [6]
+- [ ] **Block malicious URLs/domains** at the secure web gateway and DNS firewall (NET-URL-BLOCK-01) — mesh action: `quarantine_url`. [7]
 
-- [ ] **Reset credentials** for any user who clicked the link or submitted credentials; force MFA re-enrollment if MFA tokens may be compromised (IAM-RESET-02). [7]
+- [ ] **Rotate JWT / revoke sessions** when credential harvest is suspected (IAM-RESET-02) — mesh action: `rotate_jwt`. [8]
 
-- [ ] **Revoke active sessions** for affected identities in the IdP (Okta/Azure AD) immediately. [8]
+- [ ] **Reset credentials** for any user who clicked the link or submitted credentials; force MFA re-enrollment. [9]
 
-- [ ] **Disable forwarding rules** created by attackers on compromised mailboxes. [9]
+- [ ] **Disable forwarding rules** created by attackers on compromised mailboxes. [10]
 
-- [ ] **Isolate endpoints** that executed attachments via EDR network isolation (EDR-ISO-01). [10]
+- [ ] **Isolate endpoints** that executed attachments via EDR network isolation (EDR-ISO-01). [11]
 
 ## Escalation Criteria
 
-- [ ] Executive or VIP mailbox targeted → escalate to CIRT Lead [11]
+- [ ] Executive or VIP mailbox targeted → escalate to CIRT Lead [12]
 
-- [ ] Evidence of successful credential use against production systems → raise severity to Critical [12]
+- [ ] Evidence of successful credential use against production systems → raise severity to Critical [13]
 
-- [ ] Confirmed BEC wire-fraud attempt → notify Fraud & Legal immediately [13]
+- [ ] Confirmed BEC wire-fraud attempt → notify Fraud & Legal immediately [14]
 
 ## Related CVE Intelligence
 Mock feed; verify applicability and current vendor guidance. A CVE mentioned in an alert is not proof of exploitation.
@@ -69,16 +71,17 @@ Mock feed; verify applicability and current vendor guidance. A CVE mentioned in 
 No CVE explicitly identified in this alert; no vulnerability is inferred from attack category alone.
 
 ## Sources
-[1] SOP-IR-001 · phishing.md:18 · Immediate Triage (0–15 minutes) · step 1
-[2] SOP-IR-001 · phishing.md:19 · Immediate Triage (0–15 minutes) · step 2
-[3] SOP-IR-001 · phishing.md:20 · Immediate Triage (0–15 minutes) · step 3
-[4] SOP-IR-001 · phishing.md:21 · Immediate Triage (0–15 minutes) · step 4
-[5] SOP-IR-001 · phishing.md:24 · Containment Checklist · step 1
-[6] SOP-IR-001 · phishing.md:25 · Containment Checklist · step 2
-[7] SOP-IR-001 · phishing.md:26 · Containment Checklist · step 3
-[8] SOP-IR-001 · phishing.md:27 · Containment Checklist · step 4
-[9] SOP-IR-001 · phishing.md:28 · Containment Checklist · step 5
-[10] SOP-IR-001 · phishing.md:29 · Containment Checklist · step 6
-[11] SOP-IR-001 · phishing.md:45 · Escalation Criteria · step 45
-[12] SOP-IR-001 · phishing.md:46 · Escalation Criteria · step 46
-[13] SOP-IR-001 · phishing.md:47 · Escalation Criteria · step 47
+[1] SOP-IR-001 · phishing.md:31 · Immediate Triage (0–15 minutes) · step 1
+[2] SOP-IR-001 · phishing.md:32 · Immediate Triage (0–15 minutes) · step 2
+[3] SOP-IR-001 · phishing.md:33 · Immediate Triage (0–15 minutes) · step 3
+[4] SOP-IR-001 · phishing.md:34 · Immediate Triage (0–15 minutes) · step 4
+[5] SOP-IR-001 · phishing.md:35 · Immediate Triage (0–15 minutes) · step 5
+[6] SOP-IR-001 · phishing.md:38 · Containment Checklist · step 1
+[7] SOP-IR-001 · phishing.md:39 · Containment Checklist · step 2
+[8] SOP-IR-001 · phishing.md:40 · Containment Checklist · step 3
+[9] SOP-IR-001 · phishing.md:41 · Containment Checklist · step 4
+[10] SOP-IR-001 · phishing.md:42 · Containment Checklist · step 5
+[11] SOP-IR-001 · phishing.md:43 · Containment Checklist · step 6
+[12] SOP-IR-001 · phishing.md:99 · Escalation Criteria · step 99
+[13] SOP-IR-001 · phishing.md:100 · Escalation Criteria · step 100
+[14] SOP-IR-001 · phishing.md:101 · Escalation Criteria · step 101

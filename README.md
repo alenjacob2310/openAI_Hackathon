@@ -24,7 +24,7 @@ streamlit run app.py
 # Optional: python scripts/ingest.py to prebuild the vector index
 ```
 
-Open **Incident workspace** in the sidebar. The app opens with a phishing sample ready to investigate.
+Open **Incident workspace** in the sidebar. The app opens on the supplied Dashboard. Open Incident workspace for a phishing sample ready to investigate.
 
 - **Local demo:** works without an API key. Click **Analyze alert** to match bundled SOPs directly and generate an exact cited checklist. This mode is explicitly labeled as direct source lookup, not vector retrieval.
 - **Vector retrieval:** uses the existing OpenAI embeddings, Chroma, and LangGraph backend. Configure `OPENAI_API_KEY` in `.env`, select this mode in the sidebar, and click **Analyze alert**. A missing or stale index is rebuilt by the backend.
@@ -35,7 +35,7 @@ Open **Incident workspace** in the sidebar. The app opens with a phishing sample
 
 Changing alert content or analysis mode clears the prior response, review selections, notes, and ticket. Reset clears the current investigation while keeping the input available. Activity history is available in the sidebar. Session state is local to the active Streamlit session; only generated ticket files are persisted.
 
-The workspace has a dark SOC Copilot theme and adapts to desktop and narrow screens. Its optional mesh simulation pages remain available under **Local simulation**; no mesh nodes are needed for the core assistant.
+The workspace has a dark SOC Copilot theme and adapts to desktop and narrow screens. The Dashboard adds live agent-step highlighting, scenario results, node controls, and network traffic charts. Knowledge Base adds source browsing, semantic search, chunk previews, and configurable context indexing. Its optional mesh simulation pages remain available under **Local simulation**; no mesh nodes are needed for the core assistant.
 
 
 ## What is grounded
@@ -108,3 +108,16 @@ Official deployment instructions: https://docs.streamlit.io/deploy/streamlit-com
 ### Simulation action opt-in
 
 If you saw “Simulation actions disabled,” run `python scripts/setup_simulator.py --enable-actions` on the local machine and restart the local Streamlit process. Existing credentials are preserved. The monitor can also produce a preview without executing any proposed actions. Scenario buttons require the local nodes, credentials, and execution opt-in; cloud controls remain unavailable when those services are absent. An idle monitor with nothing to execute is not an execution-permission error.
+
+
+## Supplied version integration — November 22, 2026
+
+Integrated the supplied `soc-assistant 4` dashboard, navigation, Knowledge Base browser, live streamed agent trace, per-node traffic generator, and updated playbooks into the maintained application. Existing parser validation, deterministic cited checklists/tickets, simulator opt-in, operator authorization, and credential exclusions remain in place. No credentials or prebuilt runtime state from the supplied folder are used.
+
+Knowledge management is read-only on public deployments unless the server owner explicitly configures `SOC_ENABLE_KB_EDITING=true`. It is enabled only in this local checkout's ignored `.env`. Uploaded files are limited to 1 MB UTF-8 Markdown/text/JSON; collisions and symlinks are rejected. Existing SOPs cannot be overwritten. Supplementary uploads are searchable context and do not become approved containment instructions. New playbooks require an explicit category mapping in code before they can supply a checklist.
+
+All chunk strategies retain the full canonical approved SOP steps and complete mock CVE advisories. Recursive, fixed, and SOP-step strategies control additional context/upload chunks. SOP-step parsing preserves indented conditions and falls back to recursive chunks for ordinary text. Rebuilds stage a separate collection and switch the index marker only after success; older versions remain available for in-flight readers. Operators should avoid excessive forced rebuilds because older collection versions are retained.
+
+Node Start/Online/Isolate/Shutdown controls are for the authenticated localhost simulator. Public Cloud defaults do not enable them. Ransomware isolation stays applied until the operator explicitly brings the node online; a suite runs that scenario last.
+
+Validation: **51 tests passed**, including new dashboard streaming, read-only cloud controls, upload collision/validation checks, exact source spans, source/config freshness, staged rebuild rollback, and operator-only node control tests. OpenAI calls are mocked in the test suite.

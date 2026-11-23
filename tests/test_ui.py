@@ -44,13 +44,13 @@ def test_local_demo_review_ticket_and_incident_isolation(tmp_path):
         assert not at.exception
         result = at.session_state['agent_result']
         assert result['analysis_mode'] == 'Local demo'
-        assert len(at.checkbox) == 13
+        assert len(at.checkbox) == 14
         at.checkbox[0].check().run()
         next(t for t in at.text_input if t.label == 'Prepared by').set_value('SOC Tier 2').run()
         next(t for t in at.text_area if t.label == 'Analyst notes').set_value('Validate impacted mailboxes.').run()
         next(b for b in at.button if b.label == 'Generate Incident Ticket').click().run()
         assert not at.exception
-        assert 'Steps reviewed for applicability: 1/13' in at.session_state['ticket']
+        assert 'Steps reviewed for applicability: 1/14' in at.session_state['ticket']
         assert 'Validate impacted mailboxes.' in at.session_state['ticket']
         assert 'No completed actions' in at.session_state['ticket']
         at.selectbox[0].select('alert_public_s3_bucket.json').run()

@@ -140,8 +140,12 @@ def create_app(port: int) -> FastAPI:
         path = request.url.path
         if metrics.isolated and path not in {
             "/metrics",
+            "/auth/token",
             "/health",
             "/admin/lift-isolation",
+            "/admin/online",
+            "/admin/isolate",
+            "/admin/shutdown",
             "/admin/rotate-jwt",
             "/admin/remediate",
             "/docs",
@@ -416,6 +420,23 @@ def create_app(port: int) -> FastAPI:
             scenario="recovery",
             reason="manual_lift",
         )
+
+    @app.post("/admin/online")
+    async def bring_online(claims: dict[str, Any] = Depends(require_operator)):
+        return apply_action(metrics, auth_state, "lift_isolation", scenario="recovery", reason="operator_bring_online")
+
+    @app.post("/admin/isolate")
+    async def isolate_node_admin(claims: dict[str, Any] = Depends(require_operator)):
+        return apply_action(metrics, auth_state, "isolate", scenario="manual", reason="operator_isolate")
+
+    @app.post("/admin/shutdown")
+    async def shutdown_node_admin(claims: dict[str, Any] = Depends(require_operator)):
+        import asyncio
+        async def exit_after_response():
+            await asyncio.sleep(0.35)
+            os._exit(0)
+        asyncio.create_task(exit_after_response())
+        return {"status": "shutting_down", "port": port}
 
     return app
 

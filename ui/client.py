@@ -111,3 +111,72 @@ def lift_isolation(port: int) -> dict[str, Any]:
         r = client.post(f"{NODE_URLS[port]}/admin/lift-isolation", headers={"Authorization": f"Bearer {token}"})
         r.raise_for_status()
         return r.json() if r.content else {"status": r.status_code}
+
+
+def _require_local_controls(port: int) -> None:
+    from network.secrets_store import simulation_actions_enabled, simulator_config_status
+    if port not in NODE_PORTS:
+        raise ValueError('Select one of the configured localhost simulator ports.')
+    if not simulator_config_status()['configured'] or not simulation_actions_enabled():
+        raise RuntimeError('Local node controls require configured credentials and explicit simulator execution opt-in.')
+
+
+def _operator_action(port: int, route: str) -> dict[str, Any]:
+    _require_local_controls(port)
+    with httpx.Client(timeout=TIMEOUT) as client:
+        token = _token(client, port)
+        response = client.post(f'{NODE_URLS[port]}/admin/{route}', headers={'Authorization': f'Bearer {token}'})
+        response.raise_for_status()
+        return response.json()
+
+
+def isolate_node(port: int) -> dict[str, Any]:
+    return _operator_action(port, 'isolate')
+
+
+def bring_node_online(port: int) -> dict[str, Any]:
+    return _operator_action(port, 'online')
+
+
+def shutdown_node(port: int) -> dict[str, Any]:
+    return _operator_action(port, 'shutdown')
+
+
+def start_node(port: int) -> dict[str, Any]:
+    import os
+    import subprocess
+    import sys
+    import time
+    from pathlib import Path
+    _require_local_controls(port)
+    if fetch_health(port).get('online'):
+        bring_node_online(port)
+        return {'status':'already_online','port':port}
+    root = Path(__file__).resolve().parents[1]
+    environment = {**os.environ, 'MESH_NODE_PORT': str(port)}
+    options = {'creationflags': subprocess.CREATE_NEW_PROCESS_GROUP} if sys.platform == 'win32' else {'start_new_session': True}
+    process = subprocess.Popen([sys.executable, '-m', 'network.node'], cwd=root, env=environment,
+                               stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, **options)
+    for _ in range(30):
+        if process.poll() is not None:
+            raise RuntimeError(f'Node {port} exited before becoming healthy. Check simulator setup.')
+        if fetch_health(port).get('online'):
+            return {'status':'started','port':port,'pid':process.pid}
+        time.sleep(.2)
+    return {'status':'start_timeout','port':port,'pid':process.pid}
+
+
+def run_scenario_live(name: str, on_step=None) -> dict[str, Any]:
+    import asyncio
+    from network.scenarios.runner import inject_scenario, finalize_scenario_result
+    from src.monitor_agent import iter_monitor_agent
+    from network.secrets_store import simulation_actions_enabled
+    if not simulation_actions_enabled():
+        raise RuntimeError('Live scenario execution requires explicit local demo opt-in.')
+    injected = asyncio.run(inject_scenario(name))
+    result = {}
+    for state in iter_monitor_agent(hint_scenario=name, focus_port=injected.get('focus_port'), hint_context=injected.get('hint_context') or {}):
+        result = state
+        if on_step:
+            on_step(state)
+    return asyncio.run(finalize_scenario_result(injected, result))

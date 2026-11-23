@@ -84,3 +84,12 @@ The existing Streamlit Community Cloud deployment at https://openaihackathon-soc
 ### Simulation action opt-in repair
 
 The simulator setup command now supports `--enable-actions`, preserving existing credentials while explicitly enabling actions in the ignored local `.env`. Disabled execution produces a preview with no administrative API calls, rather than an error. Idle cycles do not raise an opt-in error. Scenario controls require configured healthy nodes and execution opt-in; monitor controls require the node services. Invalid execution target ports are rejected. Verified an authenticated local demo action returned HTTP 200 while preserving the node's current rate limit.
+
+
+## Supplied version integration — November 22, 2026
+
+Merged the supplied dashboard, Knowledge Base, traffic generator, streamed monitor visualization, and updated SOPs into the maintained app. The supplied `.env`, bytecode, database, logs, and tickets were excluded. Preserved the safer parser, exact checklist/ticket generator, explicit simulator execution opt-in, and operator JWT authorization. New node management endpoints require operator credentials, and recovery authentication remains available while a node is isolated.
+
+Knowledge edits are disabled by default on public servers; local editing is an explicit private configuration. Uploads use exclusive creation and validation; supplementary text remains distinct from canonical SOP steps. The index includes canonical steps plus configurable context, preserves multiline conditions, tracks source/model/config changes, and stages collection replacement so API/upsert failures retain the existing index. Older collections are retained for in-flight readers and need future retention management for long-running production use.
+
+51 automated tests passed, with no broken installed dependencies. These tests cover the integrated dashboard workflow, new admin endpoint authentication, upload and chunking regressions, graph/UI citations, and staged index failure recovery. Live OpenAI relevance/cost and production load testing remain outside this verification.
